@@ -11,7 +11,7 @@ python3 setup.py
 ```
 I did this using Ubuntu 18.04.6. 
 
-##Usage
+## Usage
 
 The main program can be run by calling
 ```
@@ -23,7 +23,7 @@ There is an example script in the Example directory.
 
 Line 137 of SoundLoc.py can be uncommented (and 138, commented) if you want to use block processing. There is no principled way to choose block and hop sizes currently included here so you must set them yourself.
 
-##WARNING
+## WARNING
 
 This program calls a backend C function in line 100 of SoundLoc.py. The C code is not "production" ready--it doesn't properly check inputs. Be careful if you change anything that gets stuck into the \_filterAndSum function.
 
