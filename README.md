@@ -9,8 +9,11 @@ You will have to compile soundloc.c. This can be done on most machines by callin
 ```
 python3 setup.py
 ```
-I did this using Ubuntu 18.04.6. 
-
+Ammon did this using Ubuntu 18.04.6:
+```
+python3 setup.py build
+sudo python3 setup.py install
+```
 ## Usage
 
 The main program can be run by calling
