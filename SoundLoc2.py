@@ -7,6 +7,34 @@ from scipy.io import wavfile
 
 c = 343.8
 
+## Hard coded mics, for improved accuracy use file specific mcis
+MICS = np.array([
+    [-0.0027702,0.94587,1.026],
+    [-0.033284,0.85697,1.0892],
+    [-0.027309,0.76563,1.0264],
+    [2.3202,-0.049072,2.149],
+    [2.4085,-0.067204,2.2144],
+    [2.4994,-0.057027,2.1473],
+    [3.493,-0.075596,0.58336],
+    [3.5861,-0.08433,0.64288],
+    [3.6705,-0.076182,0.58769],
+    [5.175,-0.073869,2.0505],
+    [5.2652,-0.082073,2.1176],
+    [5.3573,-0.072842,2.0535],
+    [6.0299,1.417,0.8331],
+    [6.0405,1.5066,0.89575],
+    [6.031,1.6032,0.83088],
+    [3.5935,2.3904,2.1849],
+    [3.512,2.3958,2.2366],
+    [3.4155,2.3831,2.1813],
+    [2.1813,2.3803,0.72677],
+    [2.2399,2.3902,0.77947],
+    [2.1501,2.3763,0.72602],
+    [1.1219,2.4042,2.124],
+    [1.0374,2.4169,2.1887],
+    [0.93938,2.4113,2.1187],
+    ])
+
 def blockProcess(s, blocksize, hopsize):
 
     nchannels, slen = s.shape
@@ -105,6 +133,34 @@ def filterAndSum(s, tds, padlen = 100):
 
     return srp
 
+## Calculates srp for a given wav, requires mic_pos, although this could be hard coded...
+def wav_to_srp(song_wav,mic_pos=MICS,cagedims = None,samplerate = 48000,res = 0.05):
+    if cagedims is None:
+        cagedims = np.array(
+            [[-0.05,6.05],
+            [-0.05,2.40],
+            [-0.05,2.55]])
+    signal = wavfile.read(song_wav)[1].T.astype('float64')
+ 
+    x = np.arange(cagedims[0,0], cagedims[0,1], res)
+    y = np.arange(cagedims[1,0], cagedims[1,1], res)
+    z = np.arange(cagedims[2,0], cagedims[2,1], res)
+
+    grid_shape = [len(x),len(y),len(z)]
+    xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
+    #grid_shape = (xx.shape[0], xx.shape[1], xx.shape[2])
+    gridpts = np.stack([xx.ravel(), yy.ravel(), zz.ravel()], axis = 1)
+
+    #localization
+    tds = calculateTimeDelays(gridpts, mic_pos, samplerate = samplerate)
+    srp = filterAndSum(signal, tds)
+    return srp,[gridpts,grid_shape]
+
+## Finds the max power in the srp and returns the location of the sound (in meters (?) from origin) 
+def get_max_pt(srp,gridpts):
+    max_ind = np.argmax(srp,axis=0)
+    max_pt = gridpts[max_ind,:]
+    return max_pt
 
 if __name__=='__main__':
 
@@ -115,6 +171,7 @@ if __name__=='__main__':
     song_wav= args[2]
 
     mic_pos = np.loadtxt(mic_pos_txt, delimiter=',')
+    """
     cagedims = np.loadtxt(cage_dims_txt, delimiter=',')
     signal = wavfile.read(song_wav)[1].T.astype('float64')
 
@@ -134,6 +191,11 @@ if __name__=='__main__':
     #localization
     tds = calculateTimeDelays(gridpts, mic_pos, samplerate = samplerate)
     srp = filterAndSum(signal, tds)
+    """
+    srp,[gridpts,grid_shape] = wav_to_srp(song_wav,mic_pos,cagedims)
+    max_pt = get_max_pt(srp)
+    full_srp = np.reshape(srp,grid_shape)
+
     #srp = filterAndSum(blockProcess(signal, blocksize, hopsize), tds)
     #np.save('./srp_output.npy',srp)
     #np.save('./grid_points.npy',gridpts)

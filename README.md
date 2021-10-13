@@ -5,6 +5,8 @@ SRP-PHAT sound localization for UPenn Aviary
 ## Installation
 
 You will need Python3, Numpy, Scipy and gcc.
+(Note that gcc isn't a python module, it installs to Ubuntu)
+
 You will have to compile soundloc.c. This can be done on most machines by calling
 ```
 python3 setup.py
